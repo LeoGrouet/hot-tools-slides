@@ -221,7 +221,7 @@ layout: two-cols
 
 <v-click>
 
-![wireframes](../images/wireframe-desktop.png){width=500px}
+![wireframes](/images/wireframe-desktop.png){width=500px}
 
 </v-click>
 <GlobalBottom />
@@ -745,6 +745,8 @@ class: color-[#163262]
 ---
 
 # Creation de bus - Traitement du formulaire
+- Je clique sur le composant de création de bus factor
+- Un formulaire s'ouvre pour saisir les informations du bus factor
 
 <<< snippets/create-bus-factor-action.ts {all|1|10-18|42-60}{maxHeight:'350px'}
 
@@ -755,7 +757,7 @@ title: API Create bus
 class: color-[#163262]
 ---
 
-# Création du bus factor
+# Création du bus factor - Traitement Backend
 
 <<< snippets/CreateBusFactor.php {all|3|10-22|32}{maxHeight:'350px'}
 
