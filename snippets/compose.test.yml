@@ -1,0 +1,68 @@
+services:
+  frontend:
+    env_file: .env
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+      target: test
+      args:
+        SERVER_URL: ${SERVER_URL}
+    networks:
+      - default
+      - playwright-test-network
+
+  php:
+    platform: linux/x86_64
+    env_file: .env
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: test
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: mysql:9.1.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+      target: base
+    ports:
+      - 80:80
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./apps/backend/public:/app/public
+    restart: unless-stopped
+    depends_on:
+      php:
+        condition: service_started
+
+  playwright:
+    env_file: .env
+    image: knplabs/hot-tools:playwright-${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: docker/playwright/Dockerfile
+    volumes:
+      - ./apps/frontend/e2e:/home/pwuser/e2e
+      - ./apps/frontend/playwright.config.ts:/home/pwuser/playwright.config.ts
+    networks:
+      - playwright-test-network
+    depends_on:
+      - frontend
+    ipc: host
+
+networks:
+  playwright-test-network:
+    driver: bridge

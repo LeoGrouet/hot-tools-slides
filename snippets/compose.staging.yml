@@ -1,0 +1,76 @@
+include: [./docker/traefik/service.yaml]
+
+services:
+  frontend:
+    image: knplabs/hot-tools:frontend-${IMAGE_TAG:-latest}
+    env_file: .env
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+      target: prod
+      args:
+        SERVER_URL: ${SERVER_URL}
+        BASIC_AUTH_USER: ${BASIC_AUTH_USER}
+        BASIC_AUTH_PASSWORD: ${BASIC_AUTH_PASSWORD}
+        NEXT_PUBLIC_CLIENT_URL: ${NEXT_PUBLIC_CLIENT_URL}
+    depends_on:
+      php:
+        condition: service_started
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.frontend.rule=Host(`staging-knp-hot-tools.knpnet.net`)'
+      - 'traefik.http.routers.frontend.tls=true'
+      - 'traefik.http.services.frontend.loadbalancer.server.port=3000'
+      - 'traefik.http.routers.frontend.tls.certresolver=staging'
+
+  php:
+    platform: linux/x86_64
+    image: knplabs/hot-tools:php-${IMAGE_TAG:-latest}
+    env_file: .env
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+      target: prod
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+
+  database:
+    image: mysql:8.4.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - database:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 2s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  nginx:
+    image: knplabs/hot-tools:nginx-${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+      target: staging
+    volumes:
+      - ./apps/backend/public:/app/public
+    restart: unless-stopped
+    depends_on:
+      php:
+        condition: service_started
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.nginx.rule=Host(`staging-knp-hot-tools.knpnet.net`) && PathPrefix(`/graphql`)'
+      - 'traefik.http.routers.nginx.rule=Host(`staging-knp-hot-tools.knpnet.net`) && PathPrefix(`/webhook`)'
+      - 'traefik.http.routers.nginx.rule=Host(`staging-knp-hot-tools.knpnet.net`) && PathPrefix(`/slack`)'
+      - 'traefik.http.routers.nginx.tls=true'
+      - 'traefik.http.services.nginx.loadbalancer.server.port=80'
+      - 'traefik.http.routers.nginx.tls.certresolver=staging'
+
+volumes:
+  database:

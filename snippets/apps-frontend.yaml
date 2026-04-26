@@ -1,0 +1,35 @@
+---
+name: Apps Frontend
+
+on:
+  pull_request:
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apps-frontend:
+    runs-on: runs-on=${{ github.run_id }}/runner=small
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+        with:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          init_env: test
+
+      - uses: ./.github/actions/docker-compose-build-and-push
+        with:
+          service: frontend
+          stage: test
+
+      - name: Build frontend
+        run: make build s=frontend
+
+      - name: Run ESLint
+        run: make eslint
+
+      - name: Run Jest with coverage
+        run: make jest-coverage

@@ -93,7 +93,7 @@ class: color-[#163262]
 <GlobalBottom />
 ---
 transition: fade-in
-title: Le Hot tools, démo
+title: La méthodologie projet
 layout: two-cols
 class: color-[#163262]
 ---
@@ -208,7 +208,7 @@ U --> UC10
 ---
 transition: slide-left
 title: Wireframes Desktop
-class: text-center color-[#163262]
+class: color-[#163262]
 layout: two-cols
 ---
 
@@ -254,7 +254,8 @@ class: color-[#163262]
 
 # Maquettes
 ::right::
-![maquettes](../images/maquette-projet.png){width=500px}
+![maquettes](../images/maquette-projet.png){width=450px}
+
 <GlobalBottom />
 ---
 transition: slide-left
@@ -281,7 +282,7 @@ entity Project {
   * id : INT <<generated>> <<PK>>
   --
   * title : VARCHAR(255)
-  * repositoryUrl : VARCHAR(255)
+  * repository_url : VARCHAR(255)
 }
 
 entity bus_factor {
@@ -451,7 +452,6 @@ layout: two-cols
 
 # Backend
 Symfony v7.2
-<v-click>- Nginx </v-click>
 <v-click>- Doctrine </v-click>
 <v-click>- Graphql API </v-click>
 <v-click>- Authentification Slack </v-click>
@@ -465,15 +465,10 @@ Symfony v7.2
 
 <v-click at="1">
 
-  ![Nginx](../images/nginx-icon.png){width=80px}
-
-</v-click>
-<v-click at="2">
-
   ![Doctrine](../images/doctrine-icon.png){width=80px}
 
 </v-click>
-<v-click at="3">
+<v-click at="2">
 
   ![graphql](../images/graphql.svg){width=80px}
 
@@ -502,6 +497,71 @@ Infrastructure : Implémente les ports pour interagir avec les systèmes externe
 Si bien fait, permet de changer tout ou partie des outils utilisés dans l'infra sans jamais toucher au code d'autre couche
  -->
 
+---
+transition: slide-left
+title: Choix technique base de données
+class: color-[#163262] gap-4 flex flex-col ml-20
+layout: image-right
+image: ../images/mysql-icon.png
+backgroundSize: contain
+---
+
+# SGBDR
+
+<div> - MySQL 9.1 </div>
+<v-click>- Open source, robuste et performant</v-click>
+
+<GlobalBottom />
+
+---
+transition: slide-left
+title: Containerisation Docker
+layout: image-right
+image: ../images/docker.svg
+backgroundSize: contain
+---
+
+# Containerisation Docker
+- Docker Compose multi-environnements
+- Dev, test, staging, prod
+
+<GlobalBottom />
+---
+transition: slide-left
+title: Docker compose multi-environnements
+class: color-[#163262]
+layout: default
+---
+
+# Environnements Docker
+
+- Environnements optimisés pour chaque étape du développement à la prod
+
+<v-switch>
+  <template #1>
+
+`compose.dev.yaml`:
+<<< @/snippets/compose.dev.yml yaml {*}{maxHeight:'300px'}
+  </template>
+  <template #2>
+
+`compose.test.yaml`:
+<<< @/snippets/compose.test.yml yaml {*}{maxHeight:'300px'}
+  </template>
+  <template #3>
+
+`compose.staging.yaml`:
+<<< @/snippets/compose.staging.yml yaml {*}{maxHeight:'300px'}
+  </template>
+</v-switch>
+
+<!-- 
+- Dev : Frontend qui depends de PHP qui depends de la BDD qui a un healthcheck , Nginx , Adminer, Playwrught pour les tests end to end
+- Test : Frontend qui branché en network avec playwright , PHP qui depends de la BDD qui a un healthcheck , Nginx , Playwrught qui depends du frontend sinon peut pas jouer les tests - Pas de volume
+- Staging : Frontend qui depends de PHP qui depends de la BDD qui a un healthcheck , Nginx et Traefik
+ -->
+
+<GlobalBottom />
 ---
 transition: slide-left
 title: Diagramme de sequence
@@ -624,7 +684,7 @@ title: Projet - Domain Model
 class: color-[#163262] gap-10 flex flex-col
 ---
 
-# L'object Projet - Domain Model
+# L'objet Projet - Domain Model
 
 <<< snippets/ProjectEntity.php {all|5-7|9-15}{maxHeight:'350px'}
 
@@ -655,96 +715,204 @@ class: color-[#163262]
 ---
 
 # Une feature Sabine !
+ - Bus factors : Cycle de vie
+ - Notification Slack
+ - Mise à jour automatique sur l'application
+
 <GlobalBottom />
 ---
 transition: slide-left
-class: color-[#163262]
+title: Status bus
+class: color-[#163262] flex flex-col gap-6 
+layout: image-right
+image: ../images/statut.png
 ---
 
-# Le Hot tools, c'est quoi ?
+# Statut de bus factor
+
+- Initialisation de statut 
+- Plannifier
+- Issue crée
+- A jour 
+- Obsolète
+- Inactif
+
 <GlobalBottom />
 ---
 transition: slide-left
+title: Create Bus Action
 class: color-[#163262]
 ---
 
-# Le Hot tools, c'est quoi ?
+# Creation de bus - Traitement du formulaire
+
+<<< snippets/create-bus-factor-action.ts {all|1|10-18|42-60}{maxHeight:'350px'}
+
 <GlobalBottom />
 ---
 transition: slide-left
+title: API Create bus
 class: color-[#163262]
 ---
 
-# Le Hot tools, c'est quoi ?
+# Création du bus factor
+
+<<< snippets/CreateBusFactor.php {all|3|10-22|32}{maxHeight:'350px'}
+
 <GlobalBottom />
 ---
 transition: slide-left
+title: Notification Slack
 class: color-[#163262]
 ---
 
-# Le Hot tools, c'est quoi ?
+# Notifications Slack
+ - Plannifié / Issue Crée
+<<< snippets/SlackNotifier.php {all|3|5-11}{maxHeight:'350px'}
+
 <GlobalBottom />
 ---
 transition: slide-left
+title: automatisation slack
 class: color-[#163262]
 ---
 
-# Le Hot tools, c'est quoi ?
+# Automatisation GitHub
+
+- Issue closed
+
+<<< snippets/WebhookController.php {all|3|10|31-39}{maxHeight:'350px'}
+
+
 <GlobalBottom />
 ---
 transition: slide-left
+title: Test Front
 class: color-[#163262]
 ---
 
-# Le Hot tools, c'est quoi ?
+# Test front
+ - Snapshots/Unitaire ... 
+ - test coverage
+<<< snippets/ProjectDetails.test.tsx {all|1-16|18-25}{maxHeight:'340px'}
+
 <GlobalBottom />
 ---
 transition: slide-left
+title: Test Back
 class: color-[#163262]
 ---
 
-# Le Hot tools, c'est quoi ?
+# Test Back
+
+<<< snippets/CreateBusFactorTest.php {all|3|4|5-18|24-29|31-41|42-47|49-52}{maxHeight:'340px'}
+
+<GlobalBottom />
+
+---
+transition: slide-left
+title: CI
+class: color-[#163262]
+---
+
+#  Pipeline CI-CD : Continuous Integration 
+ - Lint & Test Systematique
+ - Workflow Github Actions ( Front, Back, E2E, Codegen)
+
+`apps-frontend.yaml`:
+<<< snippets/apps-frontend.yaml {all|2|4-6|8-10|12-21|23-26|28-35}{maxHeight:'300px'}
+
 <GlobalBottom />
 ---
 transition: slide-left
+title: CD
 class: color-[#163262]
 ---
 
-# Le Hot tools, c'est quoi ?
+# Pipeline CI-CD : Continuous Deployment
+
+ - Déploiement automatique en staging pour chaque PR validée
+ - Tags
+
+`deploy-staging.yaml`:
+<<< snippets/deploy-staging.yaml {all|1|3-5|7-9|11-15|16-27|29-30|45-49|51-58|60-61|63-69|71-75}{maxHeight:'300px'}
+
+<GlobalBottom />
+
+---
+transition: slide-left
+title: Sécurité et RGPD
+class: color-[#163262]
+---
+
+# Sécurité et RGPD
+- Authentification Slack : Consentement et sécurité
+- JWT : Stockage sécurisé en cookie HttpOnly
+1. Protection contre faille de sécurité :
+  - Doctrine pour éviter les injections SQL
+  - React pour éviter les attaques XSS
+  - CSRF : Cookie::SameSite=lax
+
 <GlobalBottom />
 ---
 transition: slide-left
-class: color-[#163262]
+title: Problemes rencontrés
+class: color-[#163262] flex flex-col gap-6
 ---
 
-# Le Hot tools, c'est quoi ?
+# Les problèmes rencontrés
+
+<v-click>Compréhension de l'architecture hexagonale</v-click>
+
+<v-click>ADR : Appolo client</v-click>
+
+<v-click class="flex flex-col gap-2">
+Communication client : 
+    <div>
+      - Changement de cap en cours de projet
+    </div>
+      <div>- Assurance personnelle</div>
+</v-click>
+
 <GlobalBottom />
 ---
 transition: slide-left
-class: color-[#163262]
----
+title: Conclusion projet
+class: color-[#163262] gap-6 flex flex-col
+layout: default
+--- 
 
-# Le Hot tools, c'est quoi ?
+# Conclusion
+## Le projet
+
+  - Architecture héxagonale
+  - Monté en compétences sur Next.js et Symfony
+  - Méthodo Agile
+
+  ## Le futur du projet ?
+  
 <GlobalBottom />
 ---
 transition: slide-left
-class: color-[#163262]
----
+title: Conclusion personnel
+class: color-[#163262] gap-6 flex flex-col
+layout: default
+--- 
 
-# Le Hot tools, c'est quoi ?
-<GlobalBottom />
+# Conclusion
+## Personnelle 
+
+ - Projet utile 
+ - Experience entreprise
+ - Reconversion réussie : CDI
+  
 ---
 transition: slide-left
-class: color-[#163262]
+title: Merci pour votre attention !
+class: color-[#163262] flex flex-col gap-10
+layout: default
 ---
 
-# Le Hot tools, c'est quoi ?
-<GlobalBottom />
----
-transition: slide-left
-class: color-[#163262]
----
+# Merci pour votre attention !
 
-# Le Hot tools, c'est quoi ?
-
-<GlobalBottom />
+## Des questions ?

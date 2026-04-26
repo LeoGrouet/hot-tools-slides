@@ -1,0 +1,75 @@
+name: Deploy Project on staging
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deployment:
+    runs-on: runs-on=${{ github.run_id }}/runner=small
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup environment and login to DockerHub
+        uses: ./.github/actions/setup
+        with:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+          init_env: staging
+      - name: Build Docker images
+        run: IMAGE_TAG=latest docker compose -f compose.staging.yml build
+
+      - name: Push Docker images
+        run: IMAGE_TAG=latest docker compose -f compose.staging.yml push
+
+      - name: Add SSH key (via ssh-agent)
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEYS_STAGING }}
+
+      - name: Add SSH host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ vars.SSH_HOST_STAGING }}" >> ~/.ssh/known_hosts
+
+      - name: Test SSH connection
+        run: ssh -o StrictHostKeyChecking=no deploy@${{ vars.SSH_HOST_STAGING }} "echo SSH connection OK"
+
+      - name: Upload docker folder
+        run: scp -r docker deploy@${{ vars.SSH_HOST_STAGING }}:/home/deploy/hottools/
+
+      - name: Upload staging compose file
+        run: scp compose.staging.yml deploy@${{ vars.SSH_HOST_STAGING }}:/home/deploy/hottools/
+
+      - name: Login to DockerHub on remote
+        run: |
+          ssh deploy@${{ vars.SSH_HOST_STAGING }} << EOF
+            echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin
+          EOF
+        env:
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Pull latest Docker image
+        run: ssh deploy@${{ vars.SSH_HOST_STAGING }} "cd /home/deploy/hottools && docker compose -f compose.staging.yml pull"
+
+      - name: Ensure letsencrypt folder and acme.json exist
+        run: |
+          ssh deploy@${{ vars.SSH_HOST_STAGING }} << EOF
+            mkdir -p /home/deploy/hottools/letsencrypt
+            touch /home/deploy/hottools/letsencrypt/acme.json
+            chmod 600 /home/deploy/hottools/letsencrypt/acme.json
+          EOF
+
+      - name: Restart services
+        run: ssh deploy@${{ vars.SSH_HOST_STAGING }} "cd /home/deploy/hottools && docker compose -f compose.staging.yml up -d"
+
+      - name: Run Doctrine migrations
+        run: ssh deploy@${{ vars.SSH_HOST_STAGING }} "cd /home/deploy/hottools && docker compose -f compose.staging.yml exec php bin/console doctrine:migrations:migrate --no-interaction"
