@@ -57,6 +57,7 @@ layout: two-cols-header
 <v-click ><div class="m-t-10 font-bold justify-center flex color-[#163262]">La team FOSS</div> <v-click><div class="color-gray"> Aucun outils </div></v-click></v-click>
 <v-click ><div class="m-t-10 font-bold justify-center flex color-[#163262]">La team Training</div><v-click><div class="color-gray"> Trello, Slides.com</div></v-click></v-click>
 <v-click at="10"><div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 color-white bg-[#163262] border-2 border-[#163262] rounded-lg p-4">Hot tools 🌶️ </div></v-click>
+<v-click ><div class="absolute font-bold top-3/5 left-1/2 transform -translate-x-1/2 color-[#163262] border-4 border-[#163262] rounded-lg p-4">La team qualité</div></v-click>
 <v-click at="11"><div class="absolute top-4/5 left-1/2 transform -translate-x-1/2 color-[#163262]"> Etat actuel ------> </div></v-click>
 
 <GlobalBottom />
@@ -75,10 +76,31 @@ Mettre des logos avec les outils utilises par chaque team et finir par le logo d
 ---
 transition: slide-left
 title: Focus sur la team qualité
-layout: image
+layout: default
+class: color-[#163262]
 image: ./images/CSV-Suivi-bus-factor.png
 ---
 
+# Focus sur la team qualité
+
+<div class="flex flex-row gap-4">
+<div>
+<div class="m-6 font-bold">Suivi des bus factors ( et T-rex ) </div>
+    
+### Et si ton équipe était renversée par un bus ?
+
+  - Facilité de reprise projet
+  - Règle métier bien documentée
+  - Outils de qualité ( Lint and test )
+    
+  </div>
+  
+  <div class="flex flex-col mt-15 justify-center">
+  
+  ![CSV suivi bus factor](./images/CSV-Suivi-bus-factor.png){width=700px}
+  
+  </div>
+</div>
 ---
 transition: fade-in
 title: Le Hot tools, démo
@@ -101,7 +123,7 @@ class: color-[#163262]
 # Méthodologie projet
 
 - Méthode Agile SCRUM
-- Sprint 1 semaine
+- Sprint 2 semaines
 - Daily
 - Démo toutes les fins de sprint
 - Retro 2 semaines
@@ -113,7 +135,7 @@ class: color-[#163262]
 # Outils collaboratifs
 
 - Trello (Tâches, bugs)
-- GitHub (Git flow, PR + code reviews, CI/CD) Xtreme programing
+- GitHub (Git flow, PR + code reviews, CI/CD)
 - Slack (échanges équipe et client)
 - Google Meet (daily)
 </v-click>
@@ -131,11 +153,11 @@ title: Le Hot tools, la team
 class: color-[#163262]
 ---
 
-# L'equipe projet
+# L'équipe projet
 
 - Pédro et Clément : Les Clients
 - Cécile : Facilitatrice
-- Manon,Erwann, Maël et Arthur : Les développeurs de passage
+- Manon, Erwann, Maël et Arthur : Les développeurs de passage
 - Léo : Développeur Fullstack
 <GlobalBottom />
 ---
@@ -151,7 +173,7 @@ class: color-[#163262]
 | utilisateur | visualiser la page des différents outils | accéder à un outil spécial             |
 | utilisateur | visualiser mes projets                   | voir le suivi                          |
 | utilisateur | ajouter un projet                        | gérer le suivi                         |
-| utilisateur | modifier un projet                       | mettre à jour le bus factor* du projet |
+| utilisateur | modifier un projet                       | mettre à jour le bus factor du projet |
 
 <GlobalBottom />
 <!-- 
@@ -164,7 +186,7 @@ title: Use cases du MVP
 class: text-center color-[#163262]
 ---
 
-# Diagramme de Cas d'utilisation
+# Diagramme de cas d'utilisation
 
 <div my-8/>
 
@@ -248,13 +270,13 @@ layout: two-cols
 ---
 transition: slide-left
 title: Maquettes
-layout: two-cols
-class: color-[#163262]
+layout: default
+class: color-[#163262] flex flex-col
 ---
 
 # Maquettes
-::right::
-![maquettes](../images/maquette-projet.png){width=450px}
+
+![maquettes](../images/maquette-projet.png){width=600px}
 
 <GlobalBottom />
 ---
@@ -282,6 +304,7 @@ entity Project {
   * id : INT <<generated>> <<PK>>
   --
   * title : VARCHAR(255)
+  * channel_id : VARCHAR(255)
   * repository_url : VARCHAR(255)
 }
 
@@ -313,14 +336,42 @@ Project ||---o{ bus_factor
 ---
 transition: slide-left
 title: Schéma d'architecture
-class: color-[#163262] flex flex-col items-center
+class: color-[#163262] flex flex-col items-center gap-20
 ---
 
 # Schéma d'architecture
 
 <v-click>
+```plantuml
+@startuml architecture prod
+left to right direction
 
-![architecture](../images/architecture-logiciel.png){width=600px}
+node "Reverse Proxy" {
+  component "Traefik" as traefik
+}
+
+node "Frontend" {
+  component "Next App" as front
+}
+
+node "API                                     " {
+  component "Nginx HTTP Server" as nginx
+  component "API Backend (Symfony)" as api
+}
+
+database "Database" as mysql {
+  component "MySQL" as mysql_comp
+} 
+
+[traefik] -- [nginx]: /graphql
+[traefik] -- [front]
+[nginx] -- [api]
+[api] -- [mysql_comp]
+
+@enduml
+```
+
+<!-- ![architecture](../images/architecture-logiciel.png){width=600px} -->
 
 </v-click>
 <GlobalBottom />
@@ -329,7 +380,8 @@ Architecture en 4 blocs bien distincts :
 - Frontend : Next.js, React, Tailwindcss, Graphql
 - Backend : Symfony, API REST
 - Base de données : MySQL
-- Nginx : Reverse proxy pour gérer les requêtes entrantes et les rediriger vers le backend ou le frontend selon les besoins
+- Nginx : Server web pour PHP car language interprété 
+- Traefik : Reverse proxy pour gérer le routage et la sécurité des requêtes entrantes
  -->
 
 ---
@@ -421,7 +473,7 @@ title: Risky Beginning
 class: color-[#163262] flex flex-col items-center gap-10
 ---
 
-# Risky Beginning
+# Risky Beginnings
 
 ![Risky beginning](../images/risky-begining.png){width=400px}
 
@@ -457,7 +509,7 @@ Symfony v7.2
 <v-click>- Authentification Slack </v-click>
 <v-click>- JWT Token et Cookie </v-click>
 
-<v-click><div class="mt-30 bg-[#163262] h-10 flex items-center justify-center text-white rounded">Socle solide - Risky Begining</div></v-click>
+<v-click><div class="mt-30 bg-[#163262] h-10 flex items-center justify-center text-white rounded">Socle solide - Risky Beginning</div></v-click>
 
 :: right ::
 
@@ -510,6 +562,7 @@ backgroundSize: contain
 
 <div> - MySQL 9.1 </div>
 <v-click>- Open source, robuste et performant</v-click>
+<v-click>- Plus léger que Postgresql </v-click>
 
 <GlobalBottom />
 
@@ -569,7 +622,7 @@ class: text-center color-[#163262]
 layout: default
 ---
 
-# Diagramme de sequence - Page projets
+# Diagramme de séquence - Page projets
 <v-click >
 
 ```plantuml
@@ -606,7 +659,7 @@ title: Dans le code
 class: color-[#163262] flex flex-col
 ---
 
-# Enchainement des fonctions
+# Enchaînement des fonctions
 
 <v-click> 1. Middleware </v-click>
 <v-click> 2. Authentification </v-click>
@@ -631,6 +684,14 @@ class: color-[#163262]
 # L'authentification Slack
 <<< snippets/SlackAuthenticator.php {all|5|17|64-78}{maxHeight:'400px'}
 <GlobalBottom />
+
+<!--
+authenticate : Vérifie le user renvoyé par l'API Slack et retourne un SlackUser custom
+
+Cookie avec token
+Argument httpOnly pour contrer CSRF
+-->
+
 ---
 transition: slide-left
 class: color-[#163262] flex flex-col gap-10
@@ -641,26 +702,37 @@ layout: default
 
 <<< snippets/ProjectPage.tsx {all|1|10-15|16-19|41-47}{maxHeight:'350px'}
 <GlobalBottom />
-<!-- 
-[click] Fonction async pour ne pas bloquer le rendu 
+
+<!--
+[click] Fonction async pour ne pas bloquer le rendu , et pour etre capable de faire plusieurs appel async en meme temps sans perturbé le front
+
 [click] Le await pour matché l'appel async et déclencher comme c'est résolu 
+
 [click] Catch l'erreur et set les projets a tableau vide pour eviter tout probleme de rendu
+
 [click] Display des projets avec une boucle sur le composant ProjectCard { Atomic design )
- -->
+-->
 
 ---
 transition: slide-left
-title: Requete graphql - frontend
+title: Requête graphql - frontend
 class: color-[#163262] flex flex-col gap-6
 layout: default
 ---
 
-# Requete Graphql - Frontend
+# Requête Graphql - Frontend
 
 <v-click at="2"> Codegen pour un typage fort </v-click>
 
 <<< snippets/fetchProjects.ts {all|1|6-9}{maxHeight:'400px'}
 <GlobalBottom />
+
+<!--
+[click] Async parce que j'attends une réponse de mon backend 
+
+[click] Await de mes projets avec client graphql et query correspondante + typage fort grace a codegen
+-->
+
 ---
 transition: slide-left
 title: API Symfony - Projects
@@ -678,6 +750,17 @@ class: color-[#163262]
 [click] Logique de la fonction : findAll project , creation de projectType avec boucle 
 -->
 <GlobalBottom />
+
+<!--
+[click] Attribut 
+
+[click] Attribut et args
+
+[click] __invoke pour appel de la classe directement
+
+[click] Resolve - explique a Graphql comment résoudre cette requête + return d'un projectPaginationType
+-->
+
 ---
 transition: slide-left
 title: Projet - Domain Model
@@ -695,6 +778,13 @@ class: color-[#163262] gap-10 flex flex-col
 
  -->
 <GlobalBottom />
+
+<!--
+[click] Entité PHP agnostic
+
+[click]
+-->
+
 ---
 transition: slide-left
 title: Projet - Infrastructure Mapping
@@ -723,7 +813,7 @@ class: color-[#163262]
 ---
 transition: slide-left
 title: Status bus
-class: color-[#163262] flex flex-col gap-6 
+class: color-[#163262] flex flex-col gap-6
 layout: image-right
 image: ../images/statut.png
 ---
@@ -738,19 +828,38 @@ image: ../images/statut.png
 - Inactif
 
 <GlobalBottom />
+
+<!--
+- Cycle de vie d'un bus 
+Null = init
+Planned
+Issued ou A jour
+Obsolete ( a terme automatisation )
+Inactif ?
+-->
+
 ---
 transition: slide-left
 title: Create Bus Action
 class: color-[#163262]
 ---
 
-# Creation de bus - Traitement du formulaire
+# Création de bus - Traitement du formulaire
 - Je clique sur le composant de création de bus factor
 - Un formulaire s'ouvre pour saisir les informations du bus factor
 
 <<< snippets/create-bus-factor-action.ts {all|1|10-18|42-60}{maxHeight:'350px'}
 
 <GlobalBottom />
+
+<!--
+[click] J'indique a mon app que c'est un composant coté server 
+
+[click] Set un state avec les infos de mon payload
+
+[click] Mutation pas query
+-->
+
 ---
 transition: slide-left
 title: API Create bus
@@ -762,6 +871,15 @@ class: color-[#163262]
 <<< snippets/CreateBusFactor.php {all|3|10-22|32}{maxHeight:'350px'}
 
 <GlobalBottom />
+
+<!--
+[click] Bundle graphql - attribut
+
+[click]
+
+[click] Messenger - Pas mis en place personnellement donc je rentre pas dans le détail - Retour busFactorType
+-->
+
 ---
 transition: slide-left
 title: Notification Slack
@@ -773,6 +891,14 @@ class: color-[#163262]
 <<< snippets/SlackNotifier.php {all|3|5-11}{maxHeight:'350px'}
 
 <GlobalBottom />
+
+<!--
+[click]
+
+[click] Payload envoyé -> state = ? 
+Fonction pour render le template twig
+-->
+
 ---
 transition: slide-left
 title: automatisation slack
@@ -783,7 +909,7 @@ class: color-[#163262]
 
 - Issue closed
 
-<<< snippets/WebhookController.php {all|3|10|31-39}{maxHeight:'350px'}
+<<< snippets/WebhookController.php {all|3|10|26-39}{maxHeight:'350px'}
 
 
 <GlobalBottom />
@@ -811,6 +937,16 @@ class: color-[#163262]
 
 <GlobalBottom />
 
+<!--
+[click]
+[click]
+[click] mock de ce que je veux que mon appel renvoie
+
+[click] simulation de requete
+
+ [click] [click] [click] verifie le content , et assert que dans le content il y ai des choses
+-->
+
 ---
 transition: slide-left
 title: CI
@@ -825,6 +961,11 @@ class: color-[#163262]
 <<< snippets/apps-frontend.yaml {all|2|4-6|8-10|12-21|23-26|28-35}{maxHeight:'300px'}
 
 <GlobalBottom />
+
+<!--
+- phpstan, cs-fixer...
+-->
+
 ---
 transition: slide-left
 title: CD
@@ -852,10 +993,14 @@ class: color-[#163262]
 - JWT : Stockage sécurisé en cookie HttpOnly
 1. Protection contre faille de sécurité :
   - Doctrine pour éviter les injections SQL
-  - React pour éviter les attaques XSS
-  - CSRF : Cookie::SameSite=lax
+  - React comble nativement les failles XSS
 
 <GlobalBottom />
+
+<!--
+httpOnly => XSS
+-->
+
 ---
 transition: slide-left
 title: Problemes rencontrés
@@ -887,8 +1032,8 @@ layout: default
 # Conclusion
 ## Le projet
 
-  - Architecture héxagonale
-  - Monté en compétences sur Next.js et Symfony
+  - Architecture hexagonale
+  - Montée en compétences sur Next.js et Symfony
   - Méthodo Agile
 
   ## Le futur du projet ?
@@ -905,7 +1050,7 @@ layout: default
 ## Personnelle 
 
  - Projet utile 
- - Experience entreprise
+ - Expérience entreprise
  - Reconversion réussie : CDI
   
 ---

@@ -14,7 +14,7 @@ export function HistoryMobilCard({ busFactor, projectId }: { busFactor: BusFacto
   }
 
   return (
-    <Card className="mb-4 flex flex-col justify-between" key={busFactor.id}>
+    <Card className="mb-4 flex flex-col justify-between">
       <div className="flex w-full justify-between">
         <Info title="Date de mise à jour">
           {new Date(busFactor.createdAt).toLocaleDateString('fr-FR')}
